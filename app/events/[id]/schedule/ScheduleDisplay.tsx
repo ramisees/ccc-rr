@@ -111,45 +111,49 @@ export default function ScheduleDisplay({
         </div>
 
         {/* Player's matches */}
-        {selectedPlayerId && playerMatches.length > 0 && (
+        {selectedPlayerId && (
           <div className="mt-6 bg-ccc-green/5 rounded-xl border border-ccc-green/20 p-6">
             <h3 className="text-lg font-semibold text-ccc-green mb-4">Your Matches</h3>
             <div className="space-y-3">
-              {playerMatches.map(match => {
-                const isTeam1 = [match.team1Player1?.id, match.team1Player2?.id].includes(
-                  selectedPlayerId
-                )
-                const yourTeam = isTeam1
-                  ? formatTeam(match.team1Player1, match.team1Player2)
-                  : formatTeam(match.team2Player1, match.team2Player2)
-                const opponentTeam = isTeam1
-                  ? formatTeam(match.team2Player1, match.team2Player2)
-                  : formatTeam(match.team1Player1, match.team1Player2)
-
-                return (
-                  <div
-                    key={match.id}
-                    className="bg-white rounded-lg border border-gray-200 p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-medium text-gray-500">
-                          Round {match.roundNumber}, Court {match.courtNumber}
-                        </span>
-                        <p className="text-sm font-semibold text-gray-900 mt-1">
-                          {yourTeam}
-                        </p>
-                        <p className="text-sm text-gray-600">vs {opponentTeam}</p>
+              {Array.from(rounds.entries())
+                .sort(([a], [b]) => a - b)
+                .map(([roundNum, roundMatches]) => {
+                  const myMatch = roundMatches.find(match =>
+                    [match.team1Player1?.id, match.team1Player2?.id, match.team2Player1?.id, match.team2Player2?.id].includes(selectedPlayerId)
+                  )
+                  if (myMatch) {
+                    const isTeam1 = [myMatch.team1Player1?.id, myMatch.team1Player2?.id].includes(selectedPlayerId)
+                    const yourTeam = isTeam1
+                      ? formatTeam(myMatch.team1Player1, myMatch.team1Player2)
+                      : formatTeam(myMatch.team2Player1, myMatch.team2Player2)
+                    const opponentTeam = isTeam1
+                      ? formatTeam(myMatch.team2Player1, myMatch.team2Player2)
+                      : formatTeam(myMatch.team1Player1, myMatch.team1Player2)
+                    return (
+                      <div key={roundNum} className="bg-white rounded-lg border border-gray-200 p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-medium text-gray-500">
+                              Round {myMatch.roundNumber}, Court {myMatch.courtNumber}
+                            </span>
+                            <p className="text-sm font-semibold text-gray-900 mt-1">{yourTeam}</p>
+                            <p className="text-sm text-gray-600">vs {opponentTeam}</p>
+                          </div>
+                          {myMatch.matchType === 'SINGLES' && (
+                            <span className="text-xs bg-ccc-gold/20 text-ccc-gold px-2 py-1 rounded-full font-medium">SINGLES</span>
+                          )}
+                        </div>
                       </div>
-                      {match.matchType === 'SINGLES' && (
-                        <span className="text-xs bg-ccc-gold/20 text-ccc-gold px-2 py-1 rounded-full font-medium">
-                          SINGLES
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+                    )
+                  } else {
+                    return (
+                      <div key={roundNum} className="bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4">
+                        <span className="text-xs font-medium text-gray-500">Round {roundNum}</span>
+                        <p className="text-sm text-gray-500 mt-1">Bye — sit out this round</p>
+                      </div>
+                    )
+                  }
+                })}
             </div>
           </div>
         )}
@@ -159,49 +163,73 @@ export default function ScheduleDisplay({
       <div className="space-y-8">
         {Array.from(rounds.entries())
           .sort(([a], [b]) => a - b)
-          .map(([roundNum, roundMatches]) => (
-            <div key={roundNum} className="break-inside-avoid">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Round {roundNum}</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {roundMatches.map(match => (
-                  <div
-                    key={match.id}
-                    className={`border-2 rounded-xl p-4 ${getCourtColor(match.courtNumber)}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold text-gray-900">
-                        Court {match.courtNumber}
-                      </span>
-                      {match.matchType === 'SINGLES' && (
-                        <span className="text-xs bg-white/60 px-2 py-0.5 rounded-full font-medium">
-                          SINGLES
+          .map(([roundNum, roundMatches]) => {
+            // Calculate who has a bye this round
+            const playingIds = new Set<number>()
+            roundMatches.forEach(match => {
+              if (match.team1Player1) playingIds.add(match.team1Player1.id)
+              if (match.team1Player2) playingIds.add(match.team1Player2.id)
+              if (match.team2Player1) playingIds.add(match.team2Player1.id)
+              if (match.team2Player2) playingIds.add(match.team2Player2.id)
+            })
+            const byePlayers = players.filter(p => !playingIds.has(p.id))
+
+            return (
+              <div key={roundNum} className="break-inside-avoid">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Round {roundNum}</h2>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {roundMatches.map(match => (
+                    <div
+                      key={match.id}
+                      className={`border-2 rounded-xl p-4 ${getCourtColor(match.courtNumber)}`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-semibold text-gray-900">
+                          Court {match.courtNumber}
                         </span>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatTeam(match.team1Player1, match.team1Player2)}
-                        </span>
-                        {match.team1Score !== null && (
-                          <span className="text-sm font-bold">{match.team1Score}</span>
+                        {match.matchType === 'SINGLES' && (
+                          <span className="text-xs bg-white/60 px-2 py-0.5 rounded-full font-medium">
+                            SINGLES
+                          </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 text-center">vs</div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatTeam(match.team2Player1, match.team2Player2)}
-                        </span>
-                        {match.team2Score !== null && (
-                          <span className="text-sm font-bold">{match.team2Score}</span>
-                        )}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            {formatTeam(match.team1Player1, match.team1Player2)}
+                          </span>
+                          {match.team1Score !== null && (
+                            <span className="text-sm font-bold">{match.team1Score}</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 text-center">vs</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            {formatTeam(match.team2Player1, match.team2Player2)}
+                          </span>
+                          {match.team2Score !== null && (
+                            <span className="text-sm font-bold">{match.team2Score}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+
+                  {/* Bye indicator */}
+                  {byePlayers.length > 0 && (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 flex items-center justify-center">
+                      <div className="text-center">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Bye — Next Round</span>
+                        <p className="text-sm font-medium text-gray-700 mt-1">
+                          {byePlayers.map(p => p.name).join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
     </div>
   )

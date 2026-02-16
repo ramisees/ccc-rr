@@ -9,9 +9,9 @@ interface Player {
 
 interface CourtAssignment {
   courtNumber: number
-  team1: [Player, Player]
-  team2: [Player, Player]
-  matchType: 'DOUBLES'
+  team1: Player[]  // 2 players for doubles, 1 for singles
+  team2: Player[]  // 2 players for doubles, 1 for singles
+  matchType: 'DOUBLES' | 'SINGLES'
 }
 
 interface ScheduleRound {
@@ -21,12 +21,17 @@ interface ScheduleRound {
 }
 
 /**
- * Generates an 8-round pickleball doubles tournament schedule
- * - Each player plays all 8 rounds (or sits out if odd number)
- * - Partners rotate to maximize variety
- * - Opponents vary across rounds
- * - Court assignments distributed evenly
- * - Teams are balanced by rating within each court
+ * Generates an 8-round pickleball tournament schedule
+ * 
+ * Handles any player count 8-24:
+ * - If divisible by 4: all doubles courts
+ * - If remainder 1 (e.g. 9, 13, 17): doubles + 1 bye rotating each round
+ * - If remainder 2 (e.g. 10, 14, 18): doubles + 1 singles court
+ * - If remainder 3 (e.g. 11, 15, 19): doubles + 1 singles court + 1 bye rotating
+ * 
+ * Partners rotate to maximize variety
+ * Teams are balanced by rating (snake draft)
+ * Byes rotate so no player sits out more than others
  */
 export function generatePickleballSchedule(
   players: Player[],
@@ -38,36 +43,36 @@ export function generatePickleballSchedule(
   if (players.length > 24) {
     throw new Error('Maximum 24 players supported')
   }
-  if (courtCount < 2 || courtCount > 6) {
-    throw new Error('Court count must be between 2 and 6')
+  if (courtCount < 1 || courtCount > 6) {
+    throw new Error('Court count must be between 1 and 6')
   }
 
-  const rounds: ScheduleRound[] = []
-
-  // Normalize ratings once for all players (fills in defaults)
-  // We need to cast our Player into RatedPlayer format for normalizeRatings
-  const ratedPlayersResult = normalizeRatings(players.map(p => ({
+  // Normalize ratings (fill nulls with group average)
+  const ratedPlayers = normalizeRatings(players.map(p => ({
     id: p.id,
     name: p.name,
     rating: p.rating ?? null
   })))
 
-  // Map back to our local Player interface fully populated
-  const playerList: Player[] = ratedPlayersResult.map(rp => ({
+  const playerList: Player[] = ratedPlayers.map(rp => ({
     id: rp.id,
     name: rp.name,
     rating: rp.rating,
     effectiveRating: rp.effectiveRating
   }))
 
-  // If odd number of players, add a dummy "BYE" player
-  const needsBye = playerList.length % 4 !== 0
-  if (needsBye) {
-    playerList.push({ id: -1, name: 'BYE', rating: null, effectiveRating: 0 })
-  }
+  const n = playerList.length
+  const remainder = n % 4
+  // remainder 0: all doubles
+  // remainder 1: doubles + 1 bye
+  // remainder 2: doubles + 1 singles
+  // remainder 3: doubles + 1 singles + 1 bye
 
-  // Use a round-robin rotation algorithm
-  // We'll generate 8 rounds, rotating matchups to maximize partner and opponent variety
+  const needsSingles = remainder === 2 || remainder === 3
+  const needsBye = remainder === 1 || remainder === 3
+
+  const rounds: ScheduleRound[] = []
+
   for (let roundNum = 1; roundNum <= 8; roundNum++) {
     const round: ScheduleRound = {
       roundNumber: roundNum,
@@ -75,42 +80,52 @@ export function generatePickleballSchedule(
       byes: [],
     }
 
-    // Rotate players for this round using a carousel method
-    const rotatedPlayers = rotateForRound(playerList, roundNum)
+    // Rotate players for variety
+    const rotated = rotateForRound(playerList, roundNum)
 
-    // Group players into groups of 4 for each court
-    // Instead of forming fixed teams [0,1] vs [2,3], we take [0,1,2,3] and balance them
+    // Separate out bye player(s) first
+    let activePlayers = [...rotated]
 
+    if (needsBye) {
+      // The bye player rotates each round based on round number
+      // This ensures everyone sits out roughly equally
+      const byeIndex = (roundNum - 1) % activePlayers.length
+      const byePlayer = activePlayers.splice(byeIndex, 1)[0]
+      round.byes.push(byePlayer)
+    }
+
+    // Now assign active players to courts
+    // If singles needed, last 2 players go to singles court
+    let doublesPlayers: Player[] = []
+    let singlesPlayers: Player[] = []
+
+    if (needsSingles) {
+      // Last 2 active players play singles — rotate who plays singles each round
+      const singlesStartIdx = activePlayers.length - 2
+      singlesPlayers = activePlayers.slice(singlesStartIdx)
+      doublesPlayers = activePlayers.slice(0, singlesStartIdx)
+    } else {
+      doublesPlayers = activePlayers
+    }
+
+    // Assign doubles courts
     let courtNum = 1
+    for (let i = 0; i < doublesPlayers.length; i += 4) {
+      if (i + 3 >= doublesPlayers.length) break
 
-    for (let i = 0; i < rotatedPlayers.length; i += 4) {
-      if (i + 3 >= rotatedPlayers.length) break; // Should not happen if logic is correct
+      const group = [
+        doublesPlayers[i],
+        doublesPlayers[i + 1],
+        doublesPlayers[i + 2],
+        doublesPlayers[i + 3],
+      ]
 
-      const p1 = rotatedPlayers[i]
-      const p2 = rotatedPlayers[i + 1]
-      const p3 = rotatedPlayers[i + 2]
-      const p4 = rotatedPlayers[i + 3]
-
-      const group = [p1, p2, p3, p4]
-
-      // Check for BYEs
-      const hasBye = group.some(p => p.id === -1)
-      if (hasBye) {
-        group.forEach(p => {
-          if (p.id !== -1) round.byes.push(p)
-        })
-        continue
-      }
-
-      // Balance the 4 players into 2 fair teams
-      // We need to cast group to the type expected by balanceDoublesTeams
-      // Since we populated effectiveRating above, we can assert it exists
+      // Balance teams by rating (snake draft: highest+lowest vs middle two)
       const groupForBalance = group as (RatedPlayer & { effectiveRating: number })[]
       const { team1, team2 } = balanceDoublesTeams(groupForBalance)
 
       round.courts.push({
         courtNumber: courtNum,
-        // Cast back to Player
         team1: [team1[0] as Player, team1[1] as Player],
         team2: [team2[0] as Player, team2[1] as Player],
         matchType: 'DOUBLES',
@@ -120,6 +135,16 @@ export function generatePickleballSchedule(
       if (courtNum > courtCount) courtNum = 1
     }
 
+    // Assign singles court
+    if (needsSingles && singlesPlayers.length === 2) {
+      round.courts.push({
+        courtNumber: round.courts.length + 1,
+        team1: [singlesPlayers[0]],
+        team2: [singlesPlayers[1]],
+        matchType: 'SINGLES',
+      })
+    }
+
     rounds.push(round)
   }
 
@@ -127,15 +152,24 @@ export function generatePickleballSchedule(
 }
 
 /**
- * Rotate player positions for variety across rounds
- * Uses a circular shift pattern with different offsets per round
+ * Rotate player positions for variety across rounds.
+ * Fix player[0], rotate the rest (classic round-robin circle method).
+ * This maximizes partner and opponent variety.
  */
 function rotateForRound(players: Player[], roundNumber: number): Player[] {
-  const n = players.length
-  const offset = ((roundNumber - 1) * 3) % n // Different rotation per round
+  if (players.length <= 1) return [...players]
 
-  return players.map((_, i) => {
-    const newIndex = (i + offset) % n
-    return players[newIndex]
-  })
+  // Fix the first player, rotate the rest
+  const fixed = players[0]
+  const rotating = players.slice(1)
+  const n = rotating.length
+
+  // Shift by (roundNumber - 1) positions
+  const shift = (roundNumber - 1) % n
+  const rotated = [
+    ...rotating.slice(shift),
+    ...rotating.slice(0, shift),
+  ]
+
+  return [fixed, ...rotated]
 }
