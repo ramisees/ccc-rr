@@ -22,8 +22,8 @@ export default async function EventDetailPage({
 
   if (!event) return notFound()
 
-  const confirmed = event.registrations.filter(r => r.status === 'CONFIRMED')
-  const waitlisted = event.registrations.filter(r => r.status === 'WAITLISTED')
+  const confirmed = event.registrations.filter((r: { status: string }) => r.status === 'CONFIRMED')
+  const waitlisted = event.registrations.filter((r: { status: string }) => r.status === 'WAITLISTED')
   const spotsLeft = event.maxPlayers - confirmed.length
   const isFull = spotsLeft <= 0
   const isOpen = event.status === 'REGISTRATION_OPEN'
