@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import RegistrationForm from './RegistrationForm'
 
+interface Reg {
+  id: number
+  status: string
+  player: { name: string }
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function EventDetailPage({
@@ -22,8 +28,8 @@ export default async function EventDetailPage({
 
   if (!event) return notFound()
 
-  const confirmed = event.registrations.filter((r: { status: string }) => r.status === 'CONFIRMED')
-  const waitlisted = event.registrations.filter((r: { status: string }) => r.status === 'WAITLISTED')
+  const confirmed = event.registrations.filter((r: Reg) => r.status === 'CONFIRMED')
+  const waitlisted = event.registrations.filter((r: Reg) => r.status === 'WAITLISTED')
   const spotsLeft = event.maxPlayers - confirmed.length
   const isFull = spotsLeft <= 0
   const isOpen = event.status === 'REGISTRATION_OPEN'
@@ -77,7 +83,7 @@ export default async function EventDetailPage({
           <p className="text-gray-400">No players registered yet. Be the first!</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {confirmed.map((reg, i) => (
+            {confirmed.map((reg: Reg, i: number) => (
               <div key={reg.id} className="flex items-center gap-2 text-sm">
                 <span className="text-gray-400 w-5 text-right">{i + 1}.</span>
                 <span className="text-gray-800">{reg.player.name}</span>
@@ -89,7 +95,7 @@ export default async function EventDetailPage({
           <div className="mt-4 pt-4 border-t border-gray-100">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Waitlist ({waitlisted.length})</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {waitlisted.map(reg => (
+              {waitlisted.map((reg: Reg) => (
                 <div key={reg.id} className="text-sm text-gray-500">{reg.player.name}</div>
               ))}
             </div>
