@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import ScheduleDisplay from './ScheduleDisplay'
+import PrintButton from './PrintButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,12 +102,7 @@ export default async function SchedulePage({
             </p>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-ccc-green text-white rounded-lg hover:bg-ccc-green-light transition-colors"
-            >
-              Print Schedule
-            </button>
+            <PrintButton />
           </div>
         </div>
       </div>
