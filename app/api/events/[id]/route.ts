@@ -23,3 +23,40 @@ export async function GET(
 
   return NextResponse.json(event)
 }
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const body = await req.json()
+
+  const event = await prisma.event.update({
+    where: { id: parseInt(id, 10) },
+    data: {
+      name: body.name,
+      sportType: body.sportType,
+      eventDate: body.eventDate ? new Date(body.eventDate) : undefined,
+      registrationDeadline: body.registrationDeadline ? new Date(body.registrationDeadline) : undefined,
+      startTime: body.startTime,
+      courtCount: body.courtCount,
+      maxPlayers: body.maxPlayers,
+      status: body.status,
+    },
+  })
+
+  return NextResponse.json(event)
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+
+  await prisma.event.delete({
+    where: { id: parseInt(id, 10) },
+  })
+
+  return NextResponse.json({ message: 'Event deleted successfully' })
+}

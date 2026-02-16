@@ -8,6 +8,8 @@ export default function RegistrationForm({ eventId, isFull }: { eventId: number;
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [gender, setGender] = useState('')
+  const [rating, setRating] = useState('')
   const [skillLevel, setSkillLevel] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState('')
@@ -27,6 +29,8 @@ export default function RegistrationForm({ eventId, isFull }: { eventId: number;
           name: name.trim(),
           email: email.trim() || undefined,
           phone: phone.trim() || undefined,
+          gender: gender || undefined,
+          rating: rating || undefined,
           skillLevel: skillLevel || undefined,
         }),
       })
@@ -41,6 +45,8 @@ export default function RegistrationForm({ eventId, isFull }: { eventId: number;
       setName('')
       setEmail('')
       setPhone('')
+      setGender('')
+      setRating('')
       setSkillLevel('')
       router.refresh()
     } catch {
@@ -101,6 +107,35 @@ export default function RegistrationForm({ eventId, isFull }: { eventId: number;
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ccc-green/50 focus:border-ccc-green outline-none transition-colors"
             placeholder="(optional)"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+            <select
+              value={gender}
+              onChange={e => setGender(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ccc-green/50 focus:border-ccc-green outline-none transition-colors bg-white"
+            >
+              <option value="">Select</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rating (2.0-8.0)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="2.0"
+              max="8.0"
+              value={rating}
+              onChange={e => setRating(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ccc-green/50 focus:border-ccc-green outline-none transition-colors"
+              placeholder="e.g. 3.5"
+            />
+          </div>
         </div>
 
         <div>

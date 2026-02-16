@@ -9,7 +9,7 @@ export async function POST(
   const eventId = parseInt(id, 10)
   const body = await req.json()
 
-  const { name, email, phone, skillLevel } = body
+  const { name, email, phone, gender, rating, skillLevel } = body
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return NextResponse.json({ error: 'Name is required' }, { status: 400 })
   }
@@ -18,6 +18,8 @@ export async function POST(
     where: { id: eventId },
     include: { _count: { select: { registrations: true } } },
   })
+
+  // ... (validations)
 
   if (!event) {
     return NextResponse.json({ error: 'Event not found' }, { status: 404 })
@@ -32,12 +34,28 @@ export async function POST(
   if (email) {
     player = await prisma.player.findFirst({ where: { email } })
   }
-  if (!player) {
+
+  // If player found, update rating/gender if provided
+  if (player) {
+    if (gender || rating || phone) {
+      player = await prisma.player.update({
+        where: { id: player.id },
+        data: {
+          gender: gender ? gender : undefined,
+          rating: rating ? parseFloat(rating) : undefined,
+          phone: phone ? phone : undefined,
+        }
+      })
+    }
+  } else {
+    // Create new
     player = await prisma.player.create({
       data: {
         name: name.trim(),
         email: email || null,
         phone: phone || null,
+        gender: gender || null,
+        rating: rating ? parseFloat(rating) : null,
         skillLevel: skillLevel || null,
       },
     })

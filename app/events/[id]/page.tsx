@@ -103,12 +103,24 @@ export default async function EventDetailPage({
         )}
       </div>
 
+      {/* View Schedule button */}
+      {(event.status === 'SCHEDULE_GENERATED' || event.status === 'COMPLETED') && (
+        <div className="mb-8">
+          <a
+            href={`/events/${event.id}/schedule`}
+            className="block bg-ccc-gold text-white font-semibold text-center py-4 rounded-xl hover:bg-ccc-gold-light transition-colors"
+          >
+            View Schedule
+          </a>
+        </div>
+      )}
+
       {/* Registration form */}
       {isOpen && (
         <RegistrationForm eventId={event.id} isFull={isFull} />
       )}
 
-      {!isOpen && (
+      {!isOpen && event.status !== 'SCHEDULE_GENERATED' && event.status !== 'COMPLETED' && (
         <div className="bg-gray-100 rounded-xl p-6 text-center text-gray-500">
           Registration is closed for this event.
         </div>

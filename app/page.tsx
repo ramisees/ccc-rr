@@ -1,6 +1,20 @@
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const nextEvent = await prisma.event.findFirst({
+    where: {
+      eventDate: { gte: new Date() },
+      status: 'REGISTRATION_OPEN',
+    },
+    orderBy: { eventDate: 'asc' },
+    include: {
+      _count: { select: { registrations: true } },
+    },
+  })
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-16">
       {/* Hero */}
@@ -14,6 +28,25 @@ export default function Home() {
         <p className="mt-4 text-lg text-gray-600">
           Sign up for Pickleball &amp; Tennis round robins online
         </p>
+
+        {nextEvent && (
+          <div className="mt-8 inline-block bg-white rounded-xl border-2 border-ccc-green/20 shadow-lg p-6 max-w-lg w-full">
+            <p className="text-sm text-ccc-green font-bold uppercase tracking-wide mb-1">
+              Next Upcoming Event
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{nextEvent.name}</h3>
+            <p className="text-gray-600 mb-4">
+              {new Date(nextEvent.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {' '}&middot; {nextEvent.startTime}
+            </p>
+            <Link
+              href={`/events/${nextEvent.id}`}
+              className="block w-full bg-ccc-green text-white font-bold py-3 rounded-lg hover:bg-ccc-green-light transition-colors"
+            >
+              Register Now ({nextEvent.maxPlayers - nextEvent._count.registrations} spots left)
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Sport cards */}

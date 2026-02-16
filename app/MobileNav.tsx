@@ -31,11 +31,18 @@ export default function MobileNav() {
             Home
           </Link>
           <Link
-            href="/events"
+            href="/events?sport=PICKLEBALL"
             onClick={() => setOpen(false)}
             className="block px-6 py-3 text-white/80 hover:text-white hover:bg-white/10"
           >
-            Events
+            Pickleball
+          </Link>
+          <Link
+            href="/events?sport=TENNIS"
+            onClick={() => setOpen(false)}
+            className="block px-6 py-3 text-white/80 hover:text-white hover:bg-white/10"
+          >
+            Tennis
           </Link>
         </div>
       )}

@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CCC Round Robin — Catawba Country Club
+
+A modern web application for managing pickleball and tennis round robin tournaments at Catawba Country Club.
+
+## Features
+
+- **Event Management**: Create and manage pickleball and tennis round robin events
+- **Player Registration**: Simple online registration for club members
+- **Smart Scheduling**: Automated round robin algorithms that maximize partner and opponent variety
+- **Schedule Display**: Mobile-friendly schedule views with player lookup
+- **Print & Share**: Print-optimized schedules for court posting
+- **Admin Dashboard**: Password-protected admin interface for event management
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router) with TypeScript
+- **Styling**: Tailwind CSS v4
+- **Database**: PostgreSQL via Supabase
+- **ORM**: Prisma
+- **Hosting**: Vercel
+- **Authentication**: Simple password-based admin auth with JWT
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 20+ and npm
+- A Supabase account with a PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd ccc-rr-deploy
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env` file in the root directory with the following:
 
-## Learn More
+```env
+DATABASE_URL="your-supabase-pooler-url-here"
+DIRECT_URL="your-supabase-direct-url-here"
+ADMIN_PASSWORD="your-admin-password"
+SESSION_SECRET="a-random-secret-string"
+```
 
-To learn more about Next.js, take a look at the following resources:
+Get your Supabase database URLs from your Supabase project dashboard.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Push the database schema:
+```bash
+npx prisma db push
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Seed the database with sample data (optional):
+```bash
+npx prisma db seed
+```
 
-## Deploy on Vercel
+6. Run the development server:
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+/app
+  /admin          - Admin dashboard and management pages
+  /api            - API routes
+  /events         - Public event pages
+  layout.tsx      - Root layout with header/footer
+  page.tsx        - Homepage
+
+/lib
+  /algorithms     - Round robin scheduling algorithms
+  auth.ts         - Admin authentication utilities
+  prisma.ts       - Prisma client singleton
+
+/prisma
+  schema.prisma   - Database schema
+  seed.ts         - Database seeding script
+```
+
+## Admin Access
+
+Navigate to `/admin/login` and enter the admin password from your `.env` file.
+
+Admin features:
+- Create and manage events
+- View registrations and rosters
+- Generate round robin schedules
+- Close registration and delete events
+
+## Deployment to Vercel
+
+1. Push your code to GitHub
+
+2. Import the project in Vercel
+
+3. Configure environment variables in Vercel:
+   - `DATABASE_URL`
+   - `DIRECT_URL`
+   - `ADMIN_PASSWORD`
+   - `SESSION_SECRET`
+
+4. Deploy! The build command `prisma generate && next build` runs automatically.
+
+## Round Robin Algorithms
+
+### Pickleball (8 Rounds)
+- Supports 8-24 players with 2-6 courts
+- All doubles format (2v2)
+- Maximizes partner rotation and opponent variety
+- Minimizes bye rounds
+
+### Tennis
+
+**Standard (8+ players):**
+- Each player plays exactly 2 matches
+- Different partner and opponents each time
+- All doubles format
+
+**Special 6-Player Mode:**
+- Mixed court format (1 doubles court + 1 singles court)
+- Players rotate through both formats
+- Each player plays 2 total matches
+
+## Color Scheme
+
+- **Primary**: Forest Green `#2D5016`
+- **Accent**: Gold/Tan `#C4A962`
+- **Background**: Off-white `#F9FAF6`
+
+## License
+
+Private - Catawba Country Club
+
+## Support
+
+For issues or questions, contact the club administration.

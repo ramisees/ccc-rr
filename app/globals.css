@@ -24,3 +24,33 @@
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   }
 }
+
+/* Print styles for schedule */
+@media print {
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+
+  body {
+    background: white;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Ensure colors print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

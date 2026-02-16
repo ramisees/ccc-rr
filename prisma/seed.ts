@@ -1,117 +1,157 @@
-import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import 'dotenv/config';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-const prisma = new PrismaClient({ adapter })
+console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+console.log('DIRECT_URL present:', !!process.env.DIRECT_URL);
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
+
+const players = [
+  { name: "Rachele Arnica-Maxy", rating: 2.83, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Vicki Murray", rating: 3.31, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Andrew J", rating: 3.63, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Ashley Adams", rating: 3.91, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Trent Jolley", rating: 3.42, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Shannon Fuller", rating: 3.57, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Addy Adams", rating: 3.21, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "David Peltzer", rating: 3.70, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Israel Gomez", rating: 3.95, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Lauren Westmoreland", rating: 3.18, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Joe Kastelic", rating: 4.05, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Daniel Vanwagner", rating: 3.78, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Karen Shokes", rating: 3.10, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Kathleen Hire", rating: 4.03, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Jenn Foster", rating: 3.44, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Lexi Adams", rating: 3.39, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Carol Robinson", rating: 3.81, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Jennell Andrews", rating: 3.40, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Jen Hedgcoe", rating: 2.90, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Tucker Westmoreland", rating: 2.37, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Lincoln Westmoreland", rating: 3.22, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Ellie Hire", rating: 4.15, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Devin Donley", rating: 2.94, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Amber M", rating: 2.64, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Richard Gomersall", rating: 3.38, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Tony Jarrett", rating: 3.18, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Brad Shokes", rating: 2.64, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Gannon Berg", rating: 2.83, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Ramsey Dellinger", rating: null, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Leigh Anne Sharp", rating: 2.21, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Vinessa Polender", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Maria Sherrill", rating: 3.16, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Denise Moose", rating: 3.18, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Liza Allienello", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Kelly Kastelic", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Dalton Berg", rating: 3.72, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Stephanie Vanwagner", rating: 2.62, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Krista Akel", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Bryan Adams", rating: 2.86, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "April Berg", rating: 2.36, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Tabitha West", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Shannon Busic", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Jennifer Thompson", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Taylor Childers", rating: 2.57, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Brady Childers", rating: 2.85, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Doug Bishop", rating: 3.22, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Jason Burgess", rating: null, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Bonnie Bishop", rating: 3.75, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Mark West", rating: null, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Stephanie Waite", rating: 3.49, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Caroline Windham", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Fernando Desousa", rating: 3.65, gender: "MALE", sport: "PICKLEBALL" },
+  { name: "Deanna Bell", rating: 3.36, gender: "FEMALE", sport: "PICKLEBALL" },
+  { name: "Eileen Wilson", rating: null, gender: "FEMALE", sport: "PICKLEBALL" },
+];
 
 async function main() {
-  // Clear existing data
-  await prisma.registration.deleteMany()
-  await prisma.match.deleteMany()
-  await prisma.event.deleteMany()
-  await prisma.player.deleteMany()
+  console.log('Seeding data...');
 
-  // Calculate upcoming Friday and Saturday
-  const now = new Date()
-  const dayOfWeek = now.getDay() // 0=Sun, 5=Fri, 6=Sat
-  const daysUntilFriday = ((5 - dayOfWeek) + 7) % 7 || 7
-  const friday = new Date(now)
-  friday.setDate(now.getDate() + daysUntilFriday)
-  friday.setHours(9, 0, 0, 0)
+  // 1. Create Players
+  for (const p of players) {
+    const email = `${p.name.replace(/\s+/g, '.').toLowerCase()}@example.com`;
+    await prisma.player.upsert({
+      where: { email },
+      update: {
+        rating: p.rating,
+        gender: p.gender as any,
+        sport: p.sport,
+      },
+      create: {
+        name: p.name,
+        email,
+        rating: p.rating,
+        gender: p.gender as any,
+        sport: p.sport,
+        skillLevel: 'INTERMEDIATE', // Default
+      },
+    });
+  }
+  console.log(`Seeded ${players.length} players.`);
 
-  const saturday = new Date(friday)
-  saturday.setDate(friday.getDate() + 1)
-  saturday.setHours(10, 0, 0, 0)
+  // 2. Create Pickleball Event (Next Friday 9AM)
+  const today = new Date();
+  const nextFriday = new Date(today);
+  nextFriday.setDate(today.getDate() + (5 + 7 - today.getDay()) % 7);
+  nextFriday.setHours(9, 0, 0, 0);
 
-  // Registration deadline = day before event at midnight
-  const fridayDeadline = new Date(friday)
-  fridayDeadline.setDate(friday.getDate() - 1)
-  fridayDeadline.setHours(23, 59, 59, 0)
-
-  const saturdayDeadline = new Date(saturday)
-  saturdayDeadline.setDate(saturday.getDate() - 1)
-  saturdayDeadline.setHours(23, 59, 59, 0)
-
-  // Create events
-  const pickleballEvent = await prisma.event.create({
+  const pbEvent = await prisma.event.create({
     data: {
-      name: 'Friday Pickleball Round Robin',
+      name: 'Friday Morning Pickleball',
       sportType: 'PICKLEBALL',
-      eventDate: friday,
-      registrationDeadline: fridayDeadline,
+      eventDate: nextFriday,
+      registrationDeadline: new Date(nextFriday.getTime() - 24 * 60 * 60 * 1000), // 24h before
       startTime: '9:00 AM',
-      courtCount: 3,
-      maxPlayers: 12,
+      courtCount: 4,
+      maxPlayers: 16,
       status: 'REGISTRATION_OPEN',
     },
-  })
+  });
 
-  const tennisEvent = await prisma.event.create({
+  // 3. Register first 16 rated players to Pickleball Event
+  const ratedPlayers = await prisma.player.findMany({
+    where: { rating: { not: null }, sport: 'PICKLEBALL' },
+    take: 16,
+    orderBy: { rating: 'desc' },
+  });
+
+  for (const player of ratedPlayers) {
+    await prisma.registration.create({
+      data: {
+        eventId: pbEvent.id,
+        playerId: player.id,
+        status: 'CONFIRMED',
+      },
+    });
+  }
+  console.log(`Created Pickleball event and registered ${ratedPlayers.length} players.`);
+
+  // 4. Create Tennis Event (Next Saturday 10AM)
+  const nextSaturday = new Date(today);
+  nextSaturday.setDate(today.getDate() + (6 + 7 - today.getDay()) % 7);
+  nextSaturday.setHours(10, 0, 0, 0);
+
+  await prisma.event.create({
     data: {
-      name: 'Saturday Tennis Doubles',
+      name: 'Saturday Morning Tennis',
       sportType: 'TENNIS',
-      eventDate: saturday,
-      registrationDeadline: saturdayDeadline,
+      eventDate: nextSaturday,
+      registrationDeadline: new Date(nextSaturday.getTime() - 24 * 60 * 60 * 1000),
       startTime: '10:00 AM',
-      courtCount: 2,
-      maxPlayers: 8,
+      courtCount: 4,
+      maxPlayers: 16,
       status: 'REGISTRATION_OPEN',
     },
-  })
-
-  // Create 10 players
-  const playerNames = [
-    { name: 'Tom Henderson', email: 'tom.h@email.com', skillLevel: 'ADVANCED' },
-    { name: 'Sarah Mitchell', email: 'sarah.m@email.com', skillLevel: 'INTERMEDIATE' },
-    { name: 'Mike Johnson', email: 'mike.j@email.com', skillLevel: 'ADVANCED' },
-    { name: 'Lisa Chen', email: 'lisa.c@email.com', skillLevel: 'INTERMEDIATE' },
-    { name: 'Dave Wilson', email: 'dave.w@email.com', skillLevel: 'BEGINNER' },
-    { name: 'Amy Rodriguez', email: 'amy.r@email.com', skillLevel: 'ADVANCED' },
-    { name: 'Chris Taylor', email: 'chris.t@email.com', skillLevel: 'INTERMEDIATE' },
-    { name: 'Karen White', email: 'karen.w@email.com', skillLevel: 'BEGINNER' },
-    { name: 'James Brown', email: 'james.b@email.com', skillLevel: 'INTERMEDIATE' },
-    { name: 'Emily Davis', email: 'emily.d@email.com', skillLevel: 'ADVANCED' },
-  ]
-
-  const players = await Promise.all(
-    playerNames.map(p => prisma.player.create({ data: p }))
-  )
-
-  // Register 8 players for Pickleball
-  for (let i = 0; i < 8; i++) {
-    await prisma.registration.create({
-      data: {
-        eventId: pickleballEvent.id,
-        playerId: players[i].id,
-        status: 'CONFIRMED',
-      },
-    })
-  }
-
-  // Register 6 players for Tennis
-  for (let i = 0; i < 6; i++) {
-    await prisma.registration.create({
-      data: {
-        eventId: tennisEvent.id,
-        playerId: players[i].id,
-        status: 'CONFIRMED',
-      },
-    })
-  }
-
-  console.log('Seed complete!')
-  console.log(`  Pickleball event: ${pickleballEvent.name} (ID: ${pickleballEvent.id})`)
-  console.log(`  Tennis event: ${tennisEvent.name} (ID: ${tennisEvent.id})`)
-  console.log(`  ${players.length} players created`)
-  console.log(`  8 pickleball registrations, 6 tennis registrations`)
+  });
+  console.log('Created Tennis event (no registrations).');
 }
 
 main()
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

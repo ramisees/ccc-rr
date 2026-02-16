@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
-  const sportType = req.nextUrl.searchParams.get('sportType')
+  const sportTypeParam = req.nextUrl.searchParams.get('sportType')
+  const sportType = sportTypeParam === 'PICKLEBALL' || sportTypeParam === 'TENNIS'
+    ? sportTypeParam
+    : undefined
 
   const events = await prisma.event.findMany({
     where: sportType ? { sportType } : undefined,

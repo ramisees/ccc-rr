@@ -10,8 +10,14 @@ const geistSans = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'CCC Round Robin',
-  description: 'Catawba Country Club — Pickleball & Tennis Round Robin Events',
+  title: 'CCC Round Robin — Catawba Country Club',
+  description: 'Sign up for pickleball and tennis round robin events at Catawba Country Club. Easy online registration and automated tournament scheduling.',
+  keywords: ['pickleball', 'tennis', 'round robin', 'catawba country club', 'sports events'],
+  openGraph: {
+    title: 'CCC Round Robin — Catawba Country Club',
+    description: 'Sign up for pickleball and tennis round robin events',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({
@@ -31,8 +37,11 @@ export default function RootLayout({
               <Link href="/" className="text-white/80 hover:text-white transition-colors">
                 Home
               </Link>
-              <Link href="/events" className="text-white/80 hover:text-white transition-colors">
-                Events
+              <Link href="/events?sport=PICKLEBALL" className="text-white/80 hover:text-white transition-colors">
+                Pickleball
+              </Link>
+              <Link href="/events?sport=TENNIS" className="text-white/80 hover:text-white transition-colors">
+                Tennis
               </Link>
             </nav>
             <MobileNav />
